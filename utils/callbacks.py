@@ -2,18 +2,20 @@ from keras.callbacks import CSVLogger
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 
-from configuration import general_configuration, training_configuration
-
-def generate_callbacks(case_name) :
+def generate_output_filename(
+    path, dataset, case_name, approach, extension) :
     file_pattern = '{}/{}/{:02}-{}.{}'
-    model_filename = file_pattern.format(
+    return file_pattern.format(path, dataset, case_name, approach, extension)
+
+def generate_callbacks(general_configuration, training_configuration, case_name) :
+    model_filename = generate_output_filename(
         general_configuration['model_path'],
         training_configuration['dataset'],
         case_name,
         training_configuration['approach'],
         'h5')
 
-    csv_filename = file_pattern.format(
+    csv_filename = generate_output_filename(
         general_configuration['log_path'],
         training_configuration['dataset'],
         case_name,

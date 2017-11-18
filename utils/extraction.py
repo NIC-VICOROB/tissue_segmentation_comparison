@@ -1,3 +1,5 @@
+import numpy as np
+
 from sklearn.feature_extraction.image import extract_patches as sk_extract_patches
 
 def extract_patches(volume, patch_shape, extraction_step) :

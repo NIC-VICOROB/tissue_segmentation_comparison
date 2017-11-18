@@ -1,3 +1,5 @@
+import numpy as np
+
 from keras import backend as K
 from keras.layers import Activation, Input
 from keras.layers.convolutional import Conv2D, Conv2DTranspose, MaxPooling2D
@@ -8,20 +10,21 @@ from keras.models import Model
 
 K.set_image_dim_ordering('th')
 
-def generate_unet_model(configuration) :
-    activation = configuration['activation']
-    dimension = configuration['dimension']
-    num_classes = configuration['num_classes']
-    num_modalities = configuration['num_modalities']
-    output_shape = configuration['patch_shape']
-    patch_shape = configuration['patch_shape']
-    downsize_factor = configuration['downsize_factor']
+def generate_unet_model(gen_conf, train_conf) :
+    dataset = train_conf['dataset']
+    activation = train_conf['activation']
+    dimension = train_conf['dimension']
+    num_classes = gen_conf['num_classes']
+    num_modalities = gen_conf['dataset_info'][dataset]['num_modalities']
+    expected_output_shape = train_conf['output_shape']
+    patch_shape = train_conf['patch_shape']
 
-    loss = configuration['loss']
-    metrics = configuration['metrics']
-    optimizer = configuration['optimizer']
+    loss = train_conf['loss']
+    metrics = train_conf['metrics']
+    optimizer = train_conf['optimizer']
 
     input_shape = (num_modalities, ) + patch_shape
+    output_shape = (num_classes, np.prod(expected_output_shape))
 
     assert dimension in [2, 3]
 
