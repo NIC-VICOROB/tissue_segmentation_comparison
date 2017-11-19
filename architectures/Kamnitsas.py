@@ -15,7 +15,7 @@ def generate_kamnitsas_model(gen_conf, train_conf) :
     activation = train_conf['activation']
     dimension = train_conf['dimension']
     num_classes = gen_conf['num_classes']
-    num_modalities = gen_conf['dataset_info'][dataset]['num_modalities']
+    num_modalities = gen_conf['dataset_info'][dataset]['modalities']
     expected_output_shape = train_conf['output_shape']
     patch_shape = train_conf['patch_shape']
 
@@ -28,14 +28,14 @@ def generate_kamnitsas_model(gen_conf, train_conf) :
 
     assert dimension in [2, 3]
 
-    model = generate_kamnitsas_model(
+    model = __generate_kamnitsas_model(
         dimension, num_classes, input_shape, output_shape, activation)
 
     model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
     return model
 
-def generate_kamnitsas_model(dimension, num_classes, input_shape, output_shape, activation) :
+def __generate_kamnitsas_model(dimension, num_classes, input_shape, output_shape, activation) :
     normal_res_input = Input(shape=input_shape[0])
     low_res_input = Input(shape=input_shape[1])
 

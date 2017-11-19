@@ -33,6 +33,10 @@ def read_iSeg2017_dataset(dataset_path, dataset_info) :
         filename = dataset_path + path + pattern.format(img_idx + 1, inputs[2])
         labels[img_idx, 0] = read_volume(filename)[:, :, :, 0]
 
+    label_mapper = {0 : 0, 10 : 1, 150 : 2, 250 : 3}
+    for key in label_mapper.keys() :
+        labels[labels == key] = label_mapper[key]
+
     return image_data, labels
 
 def read_IBSR18_dataset(dataset_info) :
@@ -71,12 +75,16 @@ def save_volume(gen_conf, train_conf, volume, case_idx) :
         volume_tmp[:, :, :, 0] = volume
         volume = volume_tmp
 
-    data_filename = dataset_path + path + pattern.format(case_idx + 1, inputs[0])
-    image_data = read_volume_data(filename)
+        label_mapper = {0 : 0, 1 : 10, 2 : 150, 3 : 250}
+        for key in label_mapper.keys() :
+            volume[volume == key] = label_mapper[key]
+
+    data_filename = dataset_path + path + pattern.format(case_idx, inputs[0])
+    image_data = read_volume_data(data_filename)
 
     volume = np.multiply(volume, image_data.get_data() != 0)
 
-    out_filename = results_path + path + pattern.format(case_idx + 1, approach)
+    out_filename = results_path + path + pattern.format(case_idx, approach)
 
     __save_volume(volume, image_data, out_filename, dataset_info['format'])
 
@@ -85,7 +93,7 @@ def __save_volume(volume, image_data, filename, format) :
     if format == 'nii' :
         img = nib.Nifti1Image(volume, image_data.affine),
     if format == 'analyze' :
-        img = nib.analyze.AnalyzeImage(img.astype('uint8'), image_data.affine)
+        img = nib.analyze.AnalyzeImage(volume.astype('uint8'), image_data.affine)
     nib.save(img, filename)
 
 def read_volume(filename) :

@@ -2,6 +2,8 @@ import numpy as np
 
 from keras.utils import np_utils
 
+from .extraction import extract_patches
+
 def split_train_val(train_indexes, validation_split) :
     N = len(train_indexes)
     val_volumes = np.int32(np.ceil(N * validation_split))
@@ -31,7 +33,7 @@ def build_training_set(gen_conf, train_conf, input_data, labels) :
     for idx in range(len(input_data)) :
         y_length = len(y)
 
-        label_vol = labels[idx]
+        label_vol = labels[idx, 0]
         input_vol = input_data[idx]
 
         label_patches = extract_patches(label_vol, patch_shape, extraction_step)
@@ -57,23 +59,25 @@ def build_training_set(gen_conf, train_conf, input_data, labels) :
         del data_train
     return x, y
 
-def build_testing_set(train_conf, input_data) :
+def build_testing_set(gen_conf, train_conf, input_data) :
     dataset = train_conf['dataset']
     dataset_info = gen_conf['dataset_info'][dataset]
-    extraction_step = train_conf['extraction_step']
+    extraction_step = train_conf['extraction_step_test']
     modalities = dataset_info['modalities']
     patch_shape = train_conf['patch_shape']
 
     data_patch_shape = (modalities, ) + patch_shape
     data_extraction_step = (modalities, ) + extraction_step
 
-    return extract_patches(input_vol, data_patch_shape, data_extraction_step)
+    print input_data.shape, data_patch_shape, data_extraction_step
+
+    return extract_patches(input_data, data_patch_shape, data_extraction_step)
 
 def determine_label_selector(patch_shape, output_shape) :
     patch_shape_equal_output_shape = patch_shape == output_shape
 
     slice_none = slice(None)
-    if patch_shape_equal_output_shape : 
+    if not patch_shape_equal_output_shape : 
         return [slice_none] + [slice(output_shape[i], patch_shape[i] - output_shape[i]) for i in range(3)]
     else :
         return [slice(None) for i in range(4)]

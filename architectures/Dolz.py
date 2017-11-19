@@ -15,7 +15,7 @@ def generate_dolz_multi_model(gen_conf, train_conf) :
     activation = train_conf['activation']
     dimension = train_conf['dimension']
     num_classes = gen_conf['num_classes']
-    num_modalities = gen_conf['dataset_info'][dataset]['num_modalities']
+    num_modalities = gen_conf['dataset_info'][dataset]['modalities']
     expected_output_shape = train_conf['output_shape']
     patch_shape = train_conf['patch_shape']
 
@@ -28,14 +28,14 @@ def generate_dolz_multi_model(gen_conf, train_conf) :
 
     assert dimension in [2, 3]
 
-    model = generate_dolz_multi_model(
+    model = __generate_dolz_multi_model(
         dimension, num_classes, input_shape, output_shape, activation)
 
     model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
     return model
 
-def generate_dolz_multi_model(dimension, num_classes, input_shape, output_shape, activation) :
+def __generate_dolz_multi_model(dimension, num_classes, input_shape, output_shape, activation) :
     init_input = Input(shape=input_shape)
 
     x = get_conv_core(dimension, init_input, 25)
