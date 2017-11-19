@@ -49,36 +49,43 @@ def train_model(
     mean, std = compute_statistics(input_data, num_modalities)
     input_data = normalise_set(input_data, num_modalities, mean, std)
 
-    x_train, y_train = build_training_set(
-        gen_conf, train_conf, input_data[train_index], labels[train_index])
-    x_val, y_val = build_training_set(
-        gen_conf, train_conf, input_data[val_index], labels[val_index])
+    if train_conf['num_epochs'] != 0 :
+        x_train, y_train = build_training_set(
+            gen_conf, train_conf, input_data[train_index], labels[train_index])
+        x_val, y_val = build_training_set(
+            gen_conf, train_conf, input_data[val_index], labels[val_index])
 
-    callbacks = generate_callbacks(
-        gen_conf, train_conf, case_name)
+        callbacks = generate_callbacks(
+            gen_conf, train_conf, case_name)
 
-    model = __train_model(
-        gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks)
+        __train_model(
+            gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks)
+
+    model = read_model(gen_conf, train_conf, case_name)
 
     return model, mean, std
 
 def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks) :
     model = generate_model(gen_conf, train_conf)
 
-    if train_conf['num_epochs'] != 0 :
-        model.fit(
-            x_train, y_train,
-            epochs=train_conf['num_epochs'],
-            validation_data=(x_val, y_val),
-            verbose=train_conf['verbose'],
-            callbacks=callbacks)
+    model.fit(
+        x_train, y_train,
+        epochs=train_conf['num_epochs'],
+        validation_data=(x_val, y_val),
+        verbose=train_conf['verbose'],
+        callbacks=callbacks)
 
+    return True
+
+def read_model(gen_conf, train_conf, case_name) :
+    model = generate_model(gen_conf, train_conf)
     model_filename = generate_output_filename(
         gen_conf['model_path'], train_conf['dataset'], case_name, train_conf['approach'], 'h5')
 
     model.load_weights(model_filename)
 
     return model
+
 
 def test_model(gen_conf, train_conf, x_test, model, case_idx) :
     num_classes = gen_conf['num_classes']

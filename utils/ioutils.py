@@ -63,6 +63,7 @@ def read_IBSR18_dataset(dataset_info) :
 def save_volume(gen_conf, train_conf, volume, case_idx) :
     dataset = train_conf['dataset']
     approach = train_conf['approach']
+    extraction_step = train_conf['extraction_step_test']
     dataset_info = gen_conf['dataset_info'][dataset]
     dataset_path = gen_conf['dataset_path']
     results_path = gen_conf['results_path']
@@ -84,7 +85,7 @@ def save_volume(gen_conf, train_conf, volume, case_idx) :
 
     volume = np.multiply(volume, image_data.get_data() != 0)
 
-    out_filename = results_path + path + pattern.format(case_idx, approach)
+    out_filename = results_path + path + pattern.format(case_idx, approach + ' - ' + str(extraction_step))
 
     __save_volume(volume, image_data, out_filename, dataset_info['format'])
 
