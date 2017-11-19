@@ -47,6 +47,7 @@ training_configuration = {
     'optimizer' : 'Adam'
     'output_shape' : (9, 9, 9),
     'patch_shape' : (27, 27, 27),
+    'bg_discard_percentage' : 0.2,
     'patience' : 1,
     'validation_split' : 0.20,
     'verbose' : 1,
