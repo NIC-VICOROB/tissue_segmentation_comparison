@@ -73,6 +73,6 @@ def test_model(gen_conf, train_conf, x_test, model, case_idx) :
     pred = segmenter.predict(x_test, verbose=1)
     pred = pred.reshape((len(pred), ) + output_shape + (num_classes, ))
 
-    ## TODO pred_img = reconstruct_volume(pred, T1_vol[9:-9, 9:-9, 9:-9].shape, extraction_step)
+    rec_vol = reconstruct_volume(gen_conf, train_conf, pred)
 
-    save_volume(gen_conf, train_conf, volume, case_idx)
+    save_volume(gen_conf, train_conf, rec_vol, case_idx)

@@ -7,7 +7,7 @@ general_configuration = {
     'dataset_info' : {
         'iSeg2017' : {
             'format' : 'analyze',
-            'resolution' : (144, 192, 256)
+            'dimensions' : (144, 192, 256)
             'num_volumes' : 10,
             'modalities' : 2,
             'general_pattern' : 'subject-{}-{}.hdr',
