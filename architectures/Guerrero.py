@@ -40,34 +40,34 @@ def __generate_uresnet_model(
     dimension, num_classes, input_shape, output_shape, activation):
     input = Input(shape=input_shape)
 
-    conv1 = get_res_conv_core(32, inputs)
+    conv1 = get_res_conv_core(dimension, input, 32)
     pool1 = get_max_pooling_layer(dimension, conv1)
 
-    conv2 = get_res_conv_core(64, pool1)
+    conv2 = get_res_conv_core(dimension, pool1, 64)
     pool2 = get_max_pooling_layer(dimension, conv2)
 
-    conv3 = get_res_conv_core(128, pool2)
+    conv3 = get_res_conv_core(dimension, pool2, 128)
     pool3 = get_max_pooling_layer(dimension, conv3)
 
-    conv4 = get_res_conv_core(256, pool3)
+    conv4 = get_res_conv_core(dimension, pool3, 256)
     up1 = get_deconv_layer(dimension, conv4, 128)
-    conv5 = get_res_conv_core(128, up1)
+    conv5 = get_res_conv_core(dimension, up1, 128)
 
     add35 = add([conv3, conv5])
-    conv6 = get_res_conv_core(128, add36)
+    conv6 = get_res_conv_core(dimension, add35, 128)
     up2 = get_deconv_layer(dimension, conv6, 64)
 
     add22 = add([conv2, up2])
-    conv7 = get_res_conv_core(64, add22)
+    conv7 = get_res_conv_core(dimension, add22, 64)
     up3 = get_deconv_layer(dimension, conv7, 32)
 
     add13 = add([conv1, up3])
-    conv8 = get_res_conv_core(32, add13)
+    conv8 = get_res_conv_core(dimension, add13, 32)
 
     pred = get_conv_fc(dimension, conv8, num_classes)
     pred = organise_output(pred, output_shape, activation)
 
-    return Model(inputs=[inputs], outputs=[pred])
+    return Model(inputs=[input], outputs=[pred])
 
 def get_res_conv_core(dimension, input, num_filters) :
     a = None
@@ -76,11 +76,11 @@ def get_res_conv_core(dimension, input, num_filters) :
     kernel_size_b = (1, 1) if dimension == 2 else (1, 1, 1)
 
     if dimension == 2 :
-        a = Conv2D(kernels, kernel_size=kernel_size_a, padding='same')(input)
-        b = Conv2D(kernels, kernel_size=kernel_size_b, padding='same')(input)
+        a = Conv2D(num_filters, kernel_size=kernel_size_a, padding='same')(input)
+        b = Conv2D(num_filters, kernel_size=kernel_size_b, padding='same')(input)
     else :
-        a = Conv3D(kernels, kernel_size=kernel_size_a, padding='same')(input)
-        b = Conv3D(kernels, kernel_size=kernel_size_b, padding='same')(input)
+        a = Conv3D(num_filters, kernel_size=kernel_size_a, padding='same')(input)
+        b = Conv3D(num_filters, kernel_size=kernel_size_b, padding='same')(input)
 
     c = add([a, b])
     c = BatchNormalization(axis=1)(c)
@@ -95,13 +95,13 @@ def get_max_pooling_layer(dimension, input) :
         return MaxPooling3D(pool_size=pool_size)(input)
 
 def get_deconv_layer(dimension, input, num_filters) :
-    pool_size = (2, 2) if dimension == 2 else (2, 2, 2)
+    kernel_size = (2, 2) if dimension == 2 else (2, 2, 2)
     strides = (2, 2) if dimension == 2 else (2, 2, 2)
 
     if dimension == 2:
-        return Conv2DTranspose(pool_size=pool_size, strides=strides)(input)
+        return Conv2DTranspose(num_filters, kernel_size=kernel_size, strides=strides)(input)
     else :
-        return Conv3DTranspose(pool_size=pool_size, strides=strides)(input)
+        return Conv3DTranspose(num_filters, kernel_size=kernel_size, strides=strides)(input)
 
 def get_conv_fc(dimension, input, num_filters) :
     fc = None
@@ -112,7 +112,7 @@ def get_conv_fc(dimension, input, num_filters) :
     else :
         fc = Conv3D(num_filters, kernel_size=kernel_size)(input)
 
-    return PReLU()(fc)
+    return Activation('relu')(fc)
 
 def organise_output(input, output_shape, activation) :
     pred = Reshape(output_shape)(input)

@@ -80,4 +80,4 @@ def determine_label_selector(patch_shape, output_shape) :
     if not patch_shape_equal_output_shape : 
         return [slice_none] + [slice(output_shape[i], patch_shape[i] - output_shape[i]) for i in range(3)]
     else :
-        return [slice(None) for i in range(4)]
+        return [slice_none for i in range(4)]
