@@ -37,7 +37,7 @@ def perform_voting(patches, output_shape, expected_shape, extraction_step, num_c
         selection = selection + [slice(None)]
         vote_img[selection] += patches[count]
 
-    return np.argmax(vote_img, axis=3)
+    return np.argmax(vote_img[:, :, :, 1:], axis=3) + 1
 
 def generate_indexes(output_shape, extraction_step, expected_shape) :
     ndims = len(output_shape)

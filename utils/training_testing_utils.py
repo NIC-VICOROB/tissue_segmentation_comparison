@@ -69,8 +69,6 @@ def build_testing_set(gen_conf, train_conf, input_data) :
     data_patch_shape = (modalities, ) + patch_shape
     data_extraction_step = (modalities, ) + extraction_step
 
-    print input_data.shape, data_patch_shape, data_extraction_step
-
     return extract_patches(input_data, data_patch_shape, data_extraction_step)
 
 def determine_label_selector(patch_shape, output_shape) :

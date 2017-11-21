@@ -22,6 +22,11 @@ def evaluate_using_loo(gen_conf, train_conf) :
     num_volumes = dataset_info['num_volumes']
     input_data, labels = read_dataset(gen_conf, train_conf)
 
+    for index in range(len(input_data)) :
+        for modality in range(num_modalities) :
+            input = input_data[index, modality]
+            input_data[index, modality] = (input - input[input != 0].mean()) / input[input != 0].std()
+
     loo = LeaveOneOut()
     for train_index, test_index in loo.split(range(num_volumes)):
         print train_index, test_index
@@ -104,8 +109,8 @@ def compute_statistics(input_data, num_modalities) :
 
     for modality in range(num_modalities) :
         modality_data = input_data[:, modality]
-        mean[modality] = np.mean(modality_data[modality_data != 0])
-        std[modality] = np.std(modality_data[modality_data != 0])
+        mean[modality] = np.mean(modality_data)
+        std[modality] = np.std(modality_data)
 
     return mean, std
 
