@@ -12,11 +12,18 @@ def reconstruct_volume(gen_conf, train_conf, patches) :
     num_classes = gen_conf['num_classes']
     patch_shape_equal_output_shape = patch_shape == output_shape
 
+    expected_shape_tmp = (expected_shape[0] + output_shape[0], )
+    expected_shape_tmp += (expected_shape[1] + output_shape[1], )
+    expected_shape_tmp += (expected_shape[2] + output_shape[2], )
+    expected_shape = expected_shape_tmp
+
     if not patch_shape_equal_output_shape :
-        expected_shape_tmp = (expected_shape[0] - patch_shape[0] + output_shape[0], )
-        expected_shape_tmp += (expected_shape[1] - patch_shape[1] + output_shape[1], )
-        expected_shape_tmp += (expected_shape[2] - patch_shape[2] + output_shape[2], )
+        expected_shape_tmp = (expected_shape[0] + output_shape[0], )
+        expected_shape_tmp += (expected_shape[1] + output_shape[1], )
+        expected_shape_tmp += (expected_shape[2] + output_shape[2], )
         expected_shape = expected_shape_tmp
+
+    print expected_shape
 
     rec_volume = perform_voting(
         patches, output_shape, expected_shape, extraction_step, num_classes)

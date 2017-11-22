@@ -33,8 +33,10 @@ def build_training_set(gen_conf, train_conf, input_data, labels) :
     for idx in range(len(input_data)) :
         y_length = len(y)
 
-        label_vol = labels[idx, 0]
-        input_vol = input_data[idx]
+        pad_size = (patch_shape[0] // 2, patch_shape[1] // 2, patch_shape[2] // 2)
+
+        label_vol = pad_both_sides(labels[idx, 0], pad_size)
+        input_vol = pad_both_sides(input_data[idx], pad_size)
 
         label_patches = extract_patches(label_vol, patch_shape, extraction_step)
         label_patches = label_patches[label_selector]
@@ -79,3 +81,13 @@ def determine_label_selector(patch_shape, output_shape) :
         return [slice_none] + [slice(output_shape[i], patch_shape[i] - output_shape[i]) for i in range(3)]
     else :
         return [slice_none for i in range(4)]
+
+def pad_both_sides(vol, pad) :
+    if len(vol.shape) == 3 :
+        return np.pad(vol,
+            ((pad[0], pad[0]), (pad[1], pad[1]), (pad[2], pad[2])),
+            'constant', constant_values=0)
+    else :
+        return np.pad(vol,
+            ((0, 0), (pad[0], pad[0]), (pad[1], pad[1]), (pad[2], pad[2])),
+            'constant', constant_values=0)

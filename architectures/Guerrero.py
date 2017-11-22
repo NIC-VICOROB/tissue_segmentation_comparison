@@ -54,14 +54,20 @@ def __generate_uresnet_model(
     conv5 = get_res_conv_core(dimension, up1, 128)
 
     add35 = add([conv3, conv5])
+    add35 = BatchNormalization(axis=1)(add35)
+    add35 = Activation('relu')(add35)
     conv6 = get_res_conv_core(dimension, add35, 128)
     up2 = get_deconv_layer(dimension, conv6, 64)
 
     add22 = add([conv2, up2])
+    add22 = BatchNormalization(axis=1)(add22)
+    add22 = Activation('relu')(add22)
     conv7 = get_res_conv_core(dimension, add22, 64)
     up3 = get_deconv_layer(dimension, conv7, 32)
 
     add13 = add([conv1, up3])
+    add13 = BatchNormalization(axis=1)(add13)
+    add13 = Activation('relu')(add13)
     conv8 = get_res_conv_core(dimension, add13, 32)
 
     pred = get_conv_fc(dimension, conv8, num_classes)
@@ -77,10 +83,14 @@ def get_res_conv_core(dimension, input, num_filters) :
 
     if dimension == 2 :
         a = Conv2D(num_filters, kernel_size=kernel_size_a, padding='same')(input)
+        a = BatchNormalization(axis=1)(a)
         b = Conv2D(num_filters, kernel_size=kernel_size_b, padding='same')(input)
+        b = BatchNormalization(axis=1)(b)
     else :
         a = Conv3D(num_filters, kernel_size=kernel_size_a, padding='same')(input)
+        a = BatchNormalization(axis=1)(a)
         b = Conv3D(num_filters, kernel_size=kernel_size_b, padding='same')(input)
+        b = BatchNormalization(axis=1)(b)
 
     c = add([a, b])
     c = BatchNormalization(axis=1)(c)

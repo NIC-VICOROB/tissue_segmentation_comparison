@@ -6,7 +6,7 @@ from architectures.arch_creator import generate_model
 from utils.callbacks import generate_callbacks, generate_output_filename
 from utils.ioutils import read_dataset, save_volume
 from utils.reconstruction import reconstruct_volume
-from utils.training_testing_utils import split_train_val, build_training_set, build_testing_set
+from utils.training_testing_utils import split_train_val, build_training_set, build_testing_set, pad_both_sides
 
 def run_evaluation_in_dataset(gen_conf, train_conf) :
     if train_conf['dataset'] == 'iSeg2017' :
@@ -20,6 +20,8 @@ def evaluate_using_loo(gen_conf, train_conf) :
     dataset_info = gen_conf['dataset_info'][train_conf['dataset']]
     num_modalities = dataset_info['modalities']
     num_volumes = dataset_info['num_volumes']
+    patch_shape = train_conf['patch_shape']
+
     input_data, labels = read_dataset(gen_conf, train_conf)
 
     for index in range(len(input_data)) :
@@ -36,8 +38,15 @@ def evaluate_using_loo(gen_conf, train_conf) :
 
         test_vol = normalise_set(input_data[test_index], num_modalities, mean, std)[0]
 
-        x_test = build_testing_set(gen_conf, train_conf, input_data[test_index[0]])
-        test_model(gen_conf, train_conf, x_test, model, test_index[0]+1)
+        pad_size = (patch_shape[0] // 2, patch_shape[1] // 2, patch_shape[2] // 2)
+
+        test_vol = pad_both_sides(test_vol, pad_size)
+        x_test = build_testing_set(gen_conf, train_conf, test_vol)
+        rec_vol = test_model(gen_conf, train_conf, x_test, model, test_index[0]+1)
+
+        rec_vol = rec_vol[pad_size[0]:-pad_size[0], pad_size[1]:-pad_size[1], pad_size[2]:-pad_size[2]]
+
+        save_volume(gen_conf, train_conf, rec_vol, test_index[0]+1)
 
         del x_test
 
@@ -84,13 +93,13 @@ def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_nam
 
 def read_model(gen_conf, train_conf, case_name) :
     model = generate_model(gen_conf, train_conf)
+    model.summary()
     model_filename = generate_output_filename(
         gen_conf['model_path'], train_conf['dataset'], case_name, train_conf['approach'], 'h5')
 
     model.load_weights(model_filename)
 
     return model
-
 
 def test_model(gen_conf, train_conf, x_test, model, case_idx) :
     num_classes = gen_conf['num_classes']
@@ -99,9 +108,7 @@ def test_model(gen_conf, train_conf, x_test, model, case_idx) :
     pred = model.predict(x_test, verbose=1)
     pred = pred.reshape((len(pred), ) + output_shape + (num_classes, ))
 
-    rec_vol = reconstruct_volume(gen_conf, train_conf, pred)
-
-    save_volume(gen_conf, train_conf, rec_vol, case_idx)
+    return reconstruct_volume(gen_conf, train_conf, pred)
 
 def compute_statistics(input_data, num_modalities) :
     mean = np.zeros((num_modalities, ))
