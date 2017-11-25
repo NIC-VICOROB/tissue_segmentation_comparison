@@ -19,7 +19,7 @@ general_configuration = {
             'dimensions' : (256, 128, 256),
             'num_volumes' : 18,
             'modalities' : 1,
-            'general_pattern' : 'IBSR_{0:02}/IBSR_{0:02}_{}.nii.gz',
+            'general_pattern' : 'IBSR_{0:02}/IBSR_{0:02}_{1}.nii.gz',
             'path' : 'IBSR18/',
             'inputs' : ['ana_strip', 'segTRI_ana']
         },
@@ -28,26 +28,26 @@ general_configuration = {
             'dimensions' : (256, 287, 256),
             'num_volumes' : [15, 20],
             'modalities' : 1,
-            'general_pattern' : ['{}/1{:02}.nii.gz', '{}/1{:02}_3C.nii.gz'],
+            'general_pattern' : ['{}/{}_tmp.nii.gz', '{}/{}_3C_tmp.nii.gz', '{}/{}_{}.nii.gz'],
             'path' : 'MICCAI2012/',
-            'folder_names' : ['training_images', 'training-labels', 'testing-images', 'testing-labels']
+            'folder_names' : ['training-images', 'training-labels', 'testing-images', 'testing-labels']
         }
     }
 }
 
 training_configuration = {
     'activation' : 'softmax',
-    'approach' : 'Cicek',
-    'dataset' : 'iSeg2017',
+    'approach' : 'DolzMulti',
+    'dataset' : 'MICCAI2012',
     'dimension' : 3,
-    'extraction_step' : (12, 12, 12),
-    'extraction_step_test' : (12, 12, 12),
+    'extraction_step' : (3, 9, 3),
+    'extraction_step_test' : (3, 3, 3),
     'loss' : 'categorical_crossentropy',
     'metrics' : ['acc'],
     'num_epochs' : 20,
     'optimizer' : 'Adam',
-    'output_shape' : (32, 32, 32),
-    'patch_shape' : (32, 32, 32),
+    'output_shape' : (9, 9, 9),
+    'patch_shape' : (27, 27, 27),
     'bg_discard_percentage' : 0.2,
     'patience' : 1,
     'validation_split' : 0.20,

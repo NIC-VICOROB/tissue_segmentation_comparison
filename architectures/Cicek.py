@@ -24,7 +24,7 @@ def generate_unet_model(gen_conf, train_conf) :
     metrics = train_conf['metrics']
     optimizer = train_conf['optimizer']
 
-    input_shape = (num_modalities, ) + patch_shape
+    input_shape = (num_modalities, ) + patch_shape 
     output_shape = (num_classes, np.prod(expected_output_shape))
 
     assert dimension in [2, 3]
