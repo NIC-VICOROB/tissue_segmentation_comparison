@@ -3,9 +3,9 @@ from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 
 def generate_output_filename(
-    path, dataset, case_name, approach, dimension, patch_shape, extension) :
-    file_pattern = '{}/{}/{:02}-{}-{}-{}.{}'
-    return file_pattern.format(path, dataset, case_name, approach, dimension, patch_shape, extension)
+    path, dataset, case_name, approach, dimension, patch_shape, extraction_step, extension) :
+    file_pattern = '{}/{}/{:02}-{}-{}-{}-{}.{}'
+    return file_pattern.format(path, dataset, case_name, approach, dimension, patch_shape, extraction_step, extension)
 
 def generate_callbacks(general_configuration, training_configuration, case_name) :
     model_filename = generate_output_filename(
@@ -15,6 +15,7 @@ def generate_callbacks(general_configuration, training_configuration, case_name)
         training_configuration['approach'],
         training_configuration['dimension'],
         str(training_configuration['patch_shape']),
+        str(training_configuration['extraction_step']),
         'h5')
 
     csv_filename = generate_output_filename(
@@ -24,6 +25,7 @@ def generate_callbacks(general_configuration, training_configuration, case_name)
         training_configuration['approach'],
         training_configuration['dimension'],
         str(training_configuration['patch_shape']),
+        str(training_configuration['extraction_step']),
         'cvs')
 
     stopper = EarlyStopping(

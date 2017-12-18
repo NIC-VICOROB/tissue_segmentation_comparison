@@ -36,7 +36,7 @@ def evaluate_using_training_testing_split(gen_conf, train_conf) :
     test_indexes = range(num_volumes[0], num_volumes[0] + num_volumes[1])
 
     for idx, test_index in enumerate(test_indexes) :
-        test_vol = normalise_set(input_data[test_index], num_modalities, mean, std)
+        test_vol = normalise_volume(input_data[test_index], num_modalities, mean, std)
 
         if patch_shape != output_shape :
             pad_size = ()
@@ -64,10 +64,10 @@ def evaluate_using_loo(gen_conf, train_conf) :
     input_data, labels = read_dataset(gen_conf, train_conf)
 
     if dataset == 'IBSR18' :
-        for index in range(len(input_data)) :
-            for modality in range(num_modalities) :
-                input = input_data[index, modality]
-                input_data[index, modality] = (input - input[input != 0].mean()) / input[input != 0].std()
+        for case in range(num_volumes) :
+            input = input_data[case, 0]
+            input_data[case, 0] -= input[input != 0].mean()
+            input_data[case, 0] /= input[input != 0].std()
 
     loo = LeaveOneOut()
     for train_index, test_index in loo.split(range(num_volumes)):
@@ -76,7 +76,7 @@ def evaluate_using_loo(gen_conf, train_conf) :
         model, mean, std = train_model(
             gen_conf, train_conf, input_data[train_index], labels[train_index], test_index[0] + 1)
 
-        test_vol = normalise_set(input_data[test_index], num_modalities, mean, std)[0]
+        test_vol = normalise_volume(input_data[test_index[0]], num_modalities, mean, std)
 
         if patch_shape != output_shape :
             pad_size = ()
@@ -87,7 +87,7 @@ def evaluate_using_loo(gen_conf, train_conf) :
         x_test = build_testing_set(gen_conf, train_conf, test_vol)
         rec_vol = test_model(gen_conf, train_conf, x_test, model)
 
-        save_volume_MICCAI2012(gen_conf, train_conf, rec_vol, test_index[0]+1)
+        save_volume(gen_conf, train_conf, rec_vol, test_index[0]+1)
 
         del x_test
 
@@ -95,8 +95,12 @@ def evaluate_using_loo(gen_conf, train_conf) :
 
 def train_model(
     gen_conf, train_conf, input_data, labels, case_name) :
+    approach = train_conf['approach']
+    dimension = train_conf['dimension']
     dataset_info = gen_conf['dataset_info'][train_conf['dataset']]
+    num_classes = gen_conf['num_classes']
     num_modalities = dataset_info['modalities']
+    output_shape = train_conf['output_shape']
     
     train_index, val_index = split_train_val(
         range(len(input_data)), train_conf['validation_split'])
@@ -110,24 +114,42 @@ def train_model(
         x_val, y_val = build_training_set(
             gen_conf, train_conf, input_data[val_index], labels[val_index])
 
+        if approach == "DolzMulti" :
+            slicer = [slice(None), slice(x_train.shape[1]-1, x_train.shape[1])]
+            slicer += [slice(9, -9) for i in range(dimension)]
+            print slicer
+            train_mask = (x_train[slicer] != 0).reshape((-1, y_train.shape[1]))
+            val_mask = (x_val[slicer] != 0).reshape((-1, y_val.shape[1]))
+        
+        if approach == "Kamnitsas" :
+            slicer = [slice(None), slice(x_train.shape[1]-1, x_train.shape[1])]
+            slicer += [slice(16, -16) for i in range(dimension)]
+            train_mask = (x_train[slicer] != 0).reshape((-1, y_train.shape[1]))
+            val_mask = (x_val[slicer] != 0).reshape((-1, y_val.shape[1]))
+
+        if approach == "Guerrero" or approach == "Cicek" :
+            train_mask = (x_train[:, -1] != 0).reshape((-1, y_train.shape[1]))
+            val_mask = (x_val[:, -1] != 0).reshape((-1, y_val.shape[1]))
+
         callbacks = generate_callbacks(
             gen_conf, train_conf, case_name)
 
         __train_model(
-            gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks)
+            gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks, train_mask, val_mask)
 
     model = read_model(gen_conf, train_conf, case_name)
 
     return model, mean, std
 
-def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks) :
+def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks, train_mask=None, val_mask=None) :
     model = generate_model(gen_conf, train_conf)
 
     model.fit(
         x_train, y_train,
         epochs=train_conf['num_epochs'],
-        validation_data=(x_val, y_val),
+        validation_data=(x_val, y_val, val_mask),
         verbose=train_conf['verbose'],
+        sample_weight=train_mask,
         callbacks=callbacks)
 
     return True
@@ -142,6 +164,7 @@ def read_model(gen_conf, train_conf, case_name) :
         train_conf['approach'],
         train_conf['dimension'],
         str(train_conf['patch_shape']),
+        str(train_conf['extraction_step']),
         'h5')
 
     model.load_weights(model_filename)
@@ -169,9 +192,18 @@ def compute_statistics(input_data, num_modalities) :
     return mean, std
 
 def normalise_set(input_data, num_modalities, mean, std) :
+    print input_data.shape
     input_data_tmp = np.copy(input_data)
     for vol_idx in range(len(input_data_tmp)) :
         for modality in range(num_modalities) :
-            input_data_tmp[vol_idx, :, modality] -= mean[modality]
-            input_data_tmp[vol_idx, :, modality] /= std[modality]
+            input_data_tmp[vol_idx, modality] -= mean[modality]
+            input_data_tmp[vol_idx, modality] /= std[modality]
+    return input_data_tmp
+
+def normalise_volume(input_data, num_modalities, mean, std) :
+    print input_data.shape
+    input_data_tmp = np.copy(input_data)
+    for modality in range(num_modalities) :
+        input_data_tmp[modality] -= mean[modality]
+        input_data_tmp[modality] /= std[modality]
     return input_data_tmp

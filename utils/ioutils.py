@@ -25,15 +25,18 @@ def read_iSeg2017_dataset(dataset_path, dataset_info) :
     labels = np.zeros((num_volumes, 1) + dimensions)
 
     for img_idx in range(num_volumes) :
-        filename = dataset_path + path + pattern.format(img_idx + 1, inputs[0])
-        image_data[img_idx, 0] = read_volume(filename)[:, :, :, 0]
-        filename = dataset_path + path + pattern.format(img_idx + 1, inputs[1])
-        image_data[img_idx, 1] = read_volume(filename)[:, :, :, 0]
+        filename = dataset_path + path + pattern.format(str(img_idx + 1), inputs[0])
+        image_data[img_idx, 0] = read_volume(filename)#[:, :, :, 0]
+        
+        filename = dataset_path + path + pattern.format(str(img_idx + 1), inputs[1])
+        image_data[img_idx, 1] = read_volume(filename)#[:, :, :, 0]
 
-        filename = dataset_path + path + pattern.format(img_idx + 1, inputs[2])
+        filename = dataset_path + path + pattern.format(img_idx + 1, inputs[1])
         labels[img_idx, 0] = read_volume(filename)[:, :, :, 0]
 
-    label_mapper = {0 : 0, 10 : 1, 150 : 2, 250 : 3}
+        image_data[img_idx, 1] = labels[img_idx, 0] != 0
+
+    label_mapper = {0 : 0, 10 : 0, 150 : 1, 250 : 2}
     for key in label_mapper.keys() :
         labels[labels == key] = label_mapper[key]
 
@@ -83,15 +86,21 @@ def read_MICCAI2012_dataset(dataset_path, dataset_info) :
         filename = dataset_path + path + pattern[1].format(folder_names[1], image_name)
         labels[img_idx, 0] = read_volume(filename)
 
+        image_data[img_idx, 0] = np.multiply(image_data[img_idx, 0], labels[img_idx, 0] != 0)
+        image_data[img_idx, 1] = labels[img_idx, 0] != 0
+
     for img_idx, image_name in enumerate(testing_set) :
+        idx = img_idx + num_volumes[0]
         filename = dataset_path + path + pattern[0].format(folder_names[2], image_name)
-        image_data[img_idx + num_volumes[0], 0] = read_volume(filename)
+        image_data[idx, 0] = read_volume(filename)
 
         filename = dataset_path + path + pattern[1].format(folder_names[3], image_name)
-        labels[img_idx + num_volumes[0], 0] = read_volume(filename)
+        labels[idx, 0] = read_volume(filename)
+
+        image_data[idx, 0] = np.multiply(image_data[idx, 0], labels[idx, 0] != 0)
+        image_data[idx, 1] = labels[idx, 0] != 0
 
     labels[labels > 4] = 0
-    image_data[labels == 0] = 0
 
     return image_data, labels
 
@@ -131,15 +140,17 @@ def save_volume(gen_conf, train_conf, volume, case_idx) :
         volume_tmp[:, :, :, 0] = volume
         volume = volume_tmp
 
-    if dataset == 'iSeg2017' :
-        label_mapper = {0 : 0, 1 : 10, 2 : 150, 3 : 250}
-        for key in label_mapper.keys() :
-            volume[volume == key] = label_mapper[key]
-
     data_filename = dataset_path + path + pattern.format(case_idx, inputs[-1])
     image_data = read_volume_data(data_filename)
 
     volume = np.multiply(volume, image_data.get_data() != 0)
+
+    if dataset == 'iSeg2017' :
+        volume[image_data.get_data() != 0] = volume[image_data.get_data() != 0] + 1
+
+        label_mapper = {0 : 0, 1 : 10, 2 : 150, 3 : 250}
+        for key in label_mapper.keys() :
+            volume[volume == key] = label_mapper[key]
 
     out_filename = results_path + path + pattern.format(case_idx, approach + ' - ' + str(extraction_step))
 

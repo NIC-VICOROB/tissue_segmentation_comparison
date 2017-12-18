@@ -24,7 +24,6 @@ def build_training_set(gen_conf, train_conf, input_data, labels) :
     patch_shape = train_conf['patch_shape']
 
     label_selector = determine_label_selector(dimension, patch_shape, output_shape)
-    print label_selector
     minimum_non_bg = bg_discard_percentage * np.prod(output_shape)
 
     data_patch_shape = (modalities, ) + patch_shape
