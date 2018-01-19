@@ -1,13 +1,6 @@
-# Quantitative comparison of fully convolutional neural networks for tissue segmentation on brain magnetic resonance imaging
+# Quantitative analysis of patch-based fully convolutional neural networks for tissue segmentation on brain magnetic resonance imaging
 
 ## Requirements
-### Folder structure
-Once the repository has been clone/downloaded, there will be only the ```log``` and ```models``` folders and the iSeg2017.ipynb file. Add the folders ```datasets``` (folder containing the testing and training sets provided by the challenge organisers), ```results``` and ```refined-results```. The resulting tree should look as indicated below.
-
-```
-tree
-```
-
 ### Libraries
 The code has been tested with the following configuration
 
@@ -25,7 +18,8 @@ The code has been tested with the following configuration
 - tensorflow-gpu == 1.0.1
 
 ## How to run it
+There are two main steps to run our framework. First, update parameters inside the configuration.py file. Make sure you update dataset_info inside general_configuration to your specific setup. Also, update fields on training_configuration to desired values. Approaches that can be tried are 'DolzMulti', 'Kamnitsas', 'Guerrero' and 'Cicek'. Second, run the following on command line
 
 ```
-jupyter notebook
+python main.py
 ```
