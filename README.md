@@ -1,6 +1,6 @@
 # Quantitative analysis of patch-based fully convolutional neural networks for tissue segmentation on brain magnetic resonance imaging
 
-This repository implements the evaluation framework proposed, but an electronic preprint is available from Arxiv:
+This repository implements the evaluation framework proposed in one of our research paper (under evaluation). An electronic preprint is available from Arxiv:
 
 ```
 Bernal, J., Kushibar, K., Cabezas, M., Valverde, S., Oliver, A., Lladó, X. (2017). Quantitative
