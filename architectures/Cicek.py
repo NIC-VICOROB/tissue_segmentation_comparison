@@ -32,7 +32,7 @@ def generate_unet_model(gen_conf, train_conf) :
     model = __generate_unet_model(
         dimension, num_classes, input_shape, output_shape, activation, downsize_factor=2)
 
-    model.compile(loss=loss, optimizer=optimizer, weighted_metrics=metrics, sample_weight_mode="temporal")
+    model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
     return model
 

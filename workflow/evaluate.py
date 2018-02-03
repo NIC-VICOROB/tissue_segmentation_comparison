@@ -63,12 +63,6 @@ def evaluate_using_loo(gen_conf, train_conf) :
 
     input_data, labels = read_dataset(gen_conf, train_conf)
 
-    if dataset == 'IBSR18' :
-        for case in range(num_volumes) :
-            input = input_data[case, 0]
-            input_data[case, 0] -= input[input != 0].mean()
-            input_data[case, 0] /= input[input != 0].std()
-
     loo = LeaveOneOut()
     for train_index, test_index in loo.split(range(num_volumes)):
         print train_index, test_index
@@ -114,42 +108,24 @@ def train_model(
         x_val, y_val = build_training_set(
             gen_conf, train_conf, input_data[val_index], labels[val_index])
 
-        if approach == "DolzMulti" :
-            slicer = [slice(None), slice(x_train.shape[1]-1, x_train.shape[1])]
-            slicer += [slice(9, -9) for i in range(dimension)]
-            print slicer
-            train_mask = (x_train[slicer] != 0).reshape((-1, y_train.shape[1]))
-            val_mask = (x_val[slicer] != 0).reshape((-1, y_val.shape[1]))
-        
-        if approach == "Kamnitsas" :
-            slicer = [slice(None), slice(x_train.shape[1]-1, x_train.shape[1])]
-            slicer += [slice(16, -16) for i in range(dimension)]
-            train_mask = (x_train[slicer] != 0).reshape((-1, y_train.shape[1]))
-            val_mask = (x_val[slicer] != 0).reshape((-1, y_val.shape[1]))
-
-        if approach == "Guerrero" or approach == "Cicek" :
-            train_mask = (x_train[:, -1] != 0).reshape((-1, y_train.shape[1]))
-            val_mask = (x_val[:, -1] != 0).reshape((-1, y_val.shape[1]))
-
         callbacks = generate_callbacks(
             gen_conf, train_conf, case_name)
 
         __train_model(
-            gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks, train_mask, val_mask)
+            gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks)
 
     model = read_model(gen_conf, train_conf, case_name)
 
     return model, mean, std
 
-def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks, train_mask=None, val_mask=None) :
+def __train_model(gen_conf, train_conf, x_train, y_train, x_val, y_val, case_name, callbacks) :
     model = generate_model(gen_conf, train_conf)
 
     model.fit(
         x_train, y_train,
         epochs=train_conf['num_epochs'],
-        validation_data=(x_val, y_val, val_mask),
+        validation_data=(x_val, y_val),
         verbose=train_conf['verbose'],
-        sample_weight=train_mask,
         callbacks=callbacks)
 
     return True
