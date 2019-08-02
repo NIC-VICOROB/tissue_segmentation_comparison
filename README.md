@@ -3,9 +3,7 @@
 This repository implements the evaluation framework proposed in one of our research paper (under evaluation). An electronic preprint is available from Arxiv:
 
 ```
-Bernal, J., Kushibar, K., Cabezas, M., Valverde, S., Oliver, A., Lladó, X. (2017). Quantitative
-analysis of patch-based fully convolutional neural networks for tissue segmentation on brain magnetic
-resonance imaging. CoRR, abs/1801.06457. arXiv:1801.06457.
+Bernal, J., Kushibar, K., Cabezas, M., Valverde, S., Oliver, A., Lladó, X. (2017). "Quantitative Analysis of Patch-Based Fully Convolutional Neural Networks for Tissue Segmentation on Brain Magnetic Resonance Imaging." IEEE Access 7 (2019): 89986-90002.
 ```
 
 ## Requirements
